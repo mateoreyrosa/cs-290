@@ -39,7 +39,6 @@ function deepEqual(x, y){
   else
   {
     //if the two parameters are not both objects than compare straight up
-    return x == y;
+    return x === y;
   }
-
 }
