@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <form>
+          <fieldset>
+            <legend>httpbin.org</legend>
+            <label for="textData">Text to be returned: </label>
+            <input type="text" id="textData">
+            <label for="submitData">Retrieve from httpbin.org: </label>
+            <input type="submit" id="submitData">
+          </fieldset>
+        </form>
+        <div>
+          <h2>Result</h2>
+          <ul>
+            <li><span>Returned Long: </span><span id="return"></span></li>
+            <li><span>Returned Data Field Only: </span><span id="returnshort"></span></li>
+          </ul>
+        </div>
+      <script src="httpbinScript.js">
+      </script>
+  </body>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <form>
+          <fieldset>
+            <legend>Weather Data by ZIP Code or City</legend>
+            <label for="ZIP">ZIP/CITY: </label>
+            <input type="text" id="ZIP">
+            <input type="submit" id="ZIPSubmit">
+          </fieldset>
+        </form>
+        <div>
+          <h2>Result</h2>
+          <ul>
+            <li><span>ZIP Code: </span><span id="originalZIP"></span></li>
+            <li><span>City Name: </span><span id="originalCITY"></span></li>
+            <li><span>Weather Information: </span><span id="weatherInfo"></span></li>
+            <li><span>Weather Information "nice": </span><span id="weatherInfoNice"></span></li>
+            <ul>
+              <li><span>City: </span><span id="city"></span></li>
+              <li><span>Temperature: </span><span id="temp"></span></li>
+              <li><span>Humidity: </span><span id="humidity"></span></li>
+              <li><span>Country: </span><span id="country"></span></li>
+            </ul>
+          </ul>
+        </div>
+      <script src="WeatherScript.js">
+      </script>
+  </body>
