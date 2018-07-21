@@ -67,6 +67,10 @@ document.getElementById("ZIPSubmit").addEventListener('click', function(event){
     document.getElementById("originalCITY").textContent = "";
     document.getElementById("originalZIP").textContent = "";
     document.getElementById("weatherInfo").textContent = "";
+    document.getElementById("city").textContent = "";
+    document.getElementById("temp").textContent = "";
+    document.getElementById("humidity").textContent = "";
+      document.getElementById("country").textContent = "";
   }
   //Prevents the page from refreshing which ensures that data is displayed
   //A refresh would cause all the requested data to be cleared, essentially
