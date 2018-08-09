@@ -70,14 +70,14 @@
 
 </form>
   <script>
-
+//Creates Ajax call that occurs when user submits a new workout
   function AjaxAddWorkout(){
        var req = new XMLHttpRequest();
        req.open("POST", "/insert", true);
         req.setRequestHeader('Content-Type', 'application/json');
         var data = {};
         //Even though we do not knwo the ID yet we need it to come first in the array
-        data.id = "placeholder";
+       data.id = "placeholder";
        data.name = document.getElementById("name").value;
        data.reps = document.getElementById("reps").value;
        data.weight = document.getElementById("weight").value;
@@ -91,23 +91,30 @@
         var responseShort = JSON.parse(response);
         var update = document.createElement("tr");
         update.setAttribute("id", responseShort.results);
+        //set the id of the data to the id in the database (comes back from the server)
         data.id = responseShort.results;
-         document.getElementById("name").style.border = "";
+        document.getElementById("name").style.border = "";
 
         var col_item = [];
         var col_text = [];
         for(property in data){
             var value = data[property];
-          col_item[property] = document.createElement("td");
+            //Create new cell in row
+            col_item[property] = document.createElement("td");
+            //Create a text node for that cell
             col_text[property] = document.createTextNode(value);
+            //if the property is ID then hide it
             if(property == "id"){
                 col_item[property].setAttribute("hidden", true);
             }
             col_item[property].appendChild(col_text[property]);
-          update.appendChild(col_item[property]);
+            update.appendChild(col_item[property]);
         }
-        DeleteEditButtons(update, data.id);
+        //Add delete and edit buttons to the row
+         DeleteEditButtons(update, data.id);
+         //Add new row to the table
          document.getElementById("WorkoutTable").appendChild(update);
+         //Clear submission data
          ClearFormData();
 
       }else{
@@ -118,6 +125,7 @@
 }
 
 function ClearFormData(){
+  //Checks both forms and clears them
   var col_names = ["name", "reps", "weight","date","unit", "name1", "reps1", "weight1","date1","unit1"];
   for(elem in col_names){
     if(col_names[elem] == "unit"){
@@ -125,41 +133,47 @@ function ClearFormData(){
       document.getElementById("unit2").checked = false;
       document.getElementById("unit1").checked = false;
       document.getElementById("unit3").checked = false;
-
     }
     document.getElementById(col_names[elem]).value = "";
   }
 }
 
   document.addEventListener("DOMContentLoaded", function () {
+		//Creates table once the DOM is laoded
      CreateTable();
-
      document.getElementById("formAdd").addEventListener("submit", function (event) {
      event.preventDefault();
+		 //Form submission requires name
      if(document.getElementById("name").value == ""){
        alert("Name is required");
        document.getElementById("name").style.border = "solid red";
      }else{
+			 //Calls the add row function
        AjaxAddWorkout();
      }
    });
+
    document.getElementById("EditWorkout").addEventListener("click", function(event){
      event.preventDefault();
+		 //Edit form submission also requires a name
      if(document.getElementById("name1").value == ""){
        alert("Name is required");
        document.getElementById("name1").style.border = "solid red";
      }else{
      SubmitEdit();
      document.getElementById("name1").style.border = "";
-   }
+   	 }
    });
+	 //Close button hides the edit form
    document.getElementById("Close").addEventListener("click", function(event){
      event.preventDefault();
      document.getElementById("EDIT").style.display = "none";
    });
-
  });
+
+//Creates the delete and edit button given the rowID and the HTML object (array)
 function DeleteEditButtons (array, arrId){
+	//Creates the hidden ID input
   var hiddenID = document.createElement("input");
   hiddenID.name = 'hiddenID';
   hiddenID.type = 'hidden';
@@ -175,49 +189,53 @@ function DeleteEditButtons (array, arrId){
     req.open("POST", "/delete", true);
     req.setRequestHeader('Content-Type', 'application/json');
     req.send(JSON.stringify(context));
+		//Adds an event listener for when a response is received from the server
     req.addEventListener('load', function(){
    if(req.status >= 200 && req.status < 400){
+		 //Removes the children of the row subsequently deleting it
      var row = document.getElementById(arrId);
      var parent = row.parentNode;
-      parent.removeChild(row);
+     parent.removeChild(row);
    }else{
      alert("Network error");
    }
    });
     event.preventDefault();
   });
+	//Creates the delete button
   var button_text = document.createTextNode("Delete");
   delete_button.appendChild(button_text);
   delete_form.appendChild(hiddenID);
   delete_form.appendChild(delete_button);
   col_delete.appendChild(delete_form);
   array.appendChild(col_delete);
-
+	//Creates new input for the edit button
   hiddenID = document.createElement("input");
   hiddenID.name = 'hiddenID';
   hiddenID.type = 'hidden';
   hiddenID.value = arrId;
-
+	//Creates a new form for the edit function
   var col_edit = document.createElement("td");
   var edit_form = document.createElement("form");
   var edit_button = document.createElement("button");
   edit_button.type = 'submit';
+	//Adds an event listener for when data is served bacl from the server
   edit_button.addEventListener("click", function(event){
     document.getElementById("EDIT").style.display = "block";
     var col_names = ["rowID","name1", "reps1", "weight1", "date1", "unit1", "unit3"];
     for(i = 0; i < 7; i++){
-
+			//Grabs the cell and innerHTML of the row given the id of that row
       var x = document.getElementById(arrId).cells[i].innerHTML;
       if(col_names[i] == ("unit1" || "unit3")){
         document.getElementById(col_names[i]).checked = x;
       }else{
-
+				//Changes the value stored in that cell to be that of what was sent to the server
         document.getElementById(col_names[i]).value = x;
       }
     }
-
     event.preventDefault();
   });
+	//Adds edit button and text to the DOM
   edit_button.setAttribute("id", arrId + "edit");
   var button_txt = document.createTextNode("EDIT");
   edit_button.appendChild(button_txt);
@@ -225,15 +243,14 @@ function DeleteEditButtons (array, arrId){
   edit_form.appendChild(edit_button);
   col_edit.appendChild(edit_form);
   array.appendChild(col_edit);
-
-
 }
-
+//Submits the edit data by requesting a via POST
 function SubmitEdit(){
   var context = {};
   var req = new XMLHttpRequest();
   req.open("POST", "/edit", true);
   req.setRequestHeader('Content-Type', 'application/json');
+	//Grab the values of each input
   context.name = document.getElementById("name1").value;
   context.reps = document.getElementById("reps1").value;
   context.weight = document.getElementById("weight1").value;
@@ -241,52 +258,55 @@ function SubmitEdit(){
   context.unit = document.getElementById("unit1").checked;
   context.id = document.getElementById("rowID").value;
   req.send(JSON.stringify(context));
+	//Adds event listener for when server data comes back
   req.addEventListener('load', function(){
- if(req.status >= 200 && req.status < 400){
-document.getElementById("EDIT").style.display = "none";
-var col_names = ["name", "reps", "weight", "date", "unit"];
-for(i = 0; i < 5; i++){
-  var x = document.getElementById(context.id).cells;
-
-  if(col_names[i] == ("unit")){
-    x[i+1].innerHTML = context[(col_names[i])];
-  }else{
-    x[i+1].innerHTML = context[(col_names[i])];
-
-  }
-}
- }else{
-   alert("Network error");
- }
+ 	  if(req.status >= 200 && req.status < 400){
+			//Hides the edit form on submit
+      document.getElementById("EDIT").style.display = "none";
+      var col_names = ["name", "reps", "weight", "date", "unit"];
+      for(i = 0; i < 5; i++){
+				//Gathers the cells of the row by id of the row
+        var x = document.getElementById(context.id).cells;
+        if(col_names[i] == ("unit")){
+					//changes the vaue stored in that cell
+          x[i+1].innerHTML = context[(col_names[i])];
+        }else{
+          x[i+1].innerHTML = context[(col_names[i])];
+        }
+     }
+    }else{
+     alert("Network error");
+    }
  });
-
 }
-
+//Parses and displays the data for the entire table which came from the server
 function ParseJSON(responseShort){
   var row = [];
   for (var i = 0; i < responseShort.length; i++) {
     var object = responseShort[i];
     row[i] = document.createElement("tr");
+		//Sets id of the row to match id of the table in the database
     row[i].setAttribute("id", responseShort[i].id);
     var col_item = [];
     var col_text = [];
      for (property in object) {
-      var value = object[property];
-      col_item[property] = document.createElement("td");
-        col_text[property] = document.createTextNode(value);
-        if(property == "id"){
-            col_item[property].setAttribute("hidden", true);
+       var value = object[property];
+			 //Creates col inside row
+       col_item[property] = document.createElement("td");
+       col_text[property] = document.createTextNode(value);
+       if(property == "id"){
+          col_item[property].setAttribute("hidden", true);
         }
         col_item[property].appendChild(col_text[property]);
-      row[i].appendChild(col_item[property]);
-
-    }
+        row[i].appendChild(col_item[property]);
+     }
+		//Creates edit and delete buttons
     DeleteEditButtons(row[i], object["id"]);
-     document.getElementById("WorkoutTable").appendChild(row[i]);
+		//Adds row to the DOM
+    document.getElementById("WorkoutTable").appendChild(row[i]);
   }
-
 }
-
+//Adds event listener for table data from the database, calls Parse JSON to add the rows
 function AddRows(){
   var req = new XMLHttpRequest();
   req.open("GET", "/refresh", true);
@@ -297,15 +317,13 @@ function AddRows(){
    var response = req.responseText;
    var responseShort = JSON.parse(response);
    ParseJSON(responseShort);
- }else{
+   }else{
    //Return an alert if something goes wrong
      alert("Error in network request: " + req.statusText);
- }
-});
-
-
+   }
+  });
 }
-
+//Creates the table and appends the header row
  function CreateTable(){
    //Adds table to DOM
    var table = document.createElement("table");

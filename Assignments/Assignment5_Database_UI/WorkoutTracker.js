@@ -1,5 +1,4 @@
 var express = require('express');
-
 var app = express();
 var handlebars = require('express-handlebars').create({layout:'false'});;
 var bodyParser = require('body-parser');
@@ -14,7 +13,10 @@ var pool = mysql.createPool({
   database        : 'cs290_reyrosam',
   "dateStrings": true
 });
+
+//"dateStrings" was set to true so that dates return from the database as strings
 //Setting up database connection from the assignment specificications
+//Creates query on run that drops the workouts table if it exists and creates a new one
 pool.query("DROP TABLE IF EXISTS workouts", function(err){ //replace your connection pool with the your variable containing the connection pool
   var createString = "CREATE TABLE workouts("+
   "id INT PRIMARY KEY AUTO_INCREMENT,"+
@@ -29,17 +31,16 @@ pool.query("DROP TABLE IF EXISTS workouts", function(err){ //replace your connec
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 app.set('port', 3894);
-//hone page get
+//hone page get renders home
 app.get('/', function(req, res){
     res.render('home');
 });
-//home page post
+//home page post renders home
 app.post('/', function(req, res){
     res.render('home');
 });
 //Initial call to pull existing table data via ajax when user first loads page
 app.get('/refresh', function(req, res){
-
   var context = {};
   pool.query('SELECT * FROM workouts', function(err, rows, fields){
     if(err){
@@ -48,9 +49,7 @@ app.get('/refresh', function(req, res){
     }
     res.setHeader('Content-Type', 'application/json');
     //Add true and false to make table look nicer
-
     for(elem in rows){
-      
       if(rows[elem].lbs == 1){
         rows[elem].lbs = "true";
       }else{
@@ -61,7 +60,7 @@ app.get('/refresh', function(req, res){
     res.send(context.results);
   });
 });
-//When user submits the form, the table is updated in the database
+//When user submits the main form, the table is updated in the database
 app.post('/insert', function(req, res, next){
   var context = {};
   pool.query("INSERT INTO workouts (name, reps, weight, date, lbs) VALUES (?, ?, ?, ?, ?)", [req.body.name, req.body.reps, req.body.weight, req.body.date, req.body.unit], function(err, result){
@@ -85,9 +84,8 @@ app.post('/delete', function(req, res, next){
     res.send(context);
   });
 });
-
+//When user clicks submit on edit form an Update query is run and nothing is sent back because it is already on the client
 app.post('/edit', function(req, res){
-
   var context = {};
   pool.query("UPDATE workouts SET name= ?, reps =?, weight = ?, date = ?, lbs= ?  WHERE id = ?",
   [req.body.name, req.body.reps, req.body.weight, req.body.date, req.body.unit, req.body.id], function(err, result){
@@ -95,11 +93,9 @@ app.post('/edit', function(req, res){
       next(err);
       return;
     }
-
     res.send(null);
   });
 });
-
 
 app.listen(app.get('port'), function(){
   console.log('Express started on http://localhost:' + app.get('port') + '; press Ctrl-C to terminate.');
