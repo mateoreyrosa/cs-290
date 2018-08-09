@@ -1,2 +1,2 @@
-# cs290example
-demo repo for video 
+# cs290
+Class Activity & Assignment Repository 
