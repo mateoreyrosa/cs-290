@@ -1,0 +1,334 @@
+<!doctype html>
+<html>
+<head>
+	<title>Workout Tracker</title>
+</head>
+<body>
+	<h1>Welcome to your Workout Tracker</h1>
+  <form id="formAdd">
+    <fieldset>
+      <legend>Add Workout Log</legend>
+      <label for="name">Name: </label>
+      <input type="text" name="name" id="name"></input>
+    </br>
+  </br>
+        <label for="reps">Number of Reps:
+      <input type="number" name="reps" id="reps"></input>
+      </label>
+    </br>
+  </br>
+        <label for="weight">Weight: </label>
+      <input type="number" name="weight" id="weight"></input>
+    </br>
+  </br>
+        <label for="date">Date: </label>
+      <input type="date" name="date" id="date"></input>
+    </br>
+  </br>
+        <label for="unit">Unit of Weight: </label>
+          <input type="radio" name="unit" id = "unit" value="lbs" />lbs</label>
+          <input type="radio" name="unit" id ="unit2" value="kg" />kg</label>
+    </br>
+  </br>
+      <input type ="submit" id="AddWorkout"></input>
+
+    </fieldset>
+
+  </form>
+</br>
+<form style="display: none"id="EDIT">
+  <fieldset>
+    <legend>Edit Workout Log</legend>
+
+    <input type="hidden" name="rowID" id="rowID"></input>
+    <label for="name">Name: </label>
+    <input type="text" name="name1" id="name1"></input>
+  </br>
+</br>
+      <label for="reps">Number of Reps:
+    <input type="number" name="reps1" id="reps1"></input>
+    </label>
+  </br>
+</br>
+      <label for="weight">Weight: </label>
+    <input type="number" name="weight1" id="weight1"></input>
+  </br>
+</br>
+      <label for="date">Date: </label>
+    <input type="date" name="date1" id="date1"></input>
+  </br>
+</br>
+      <label for="unit">Unit of Weight: </label>
+        <input type="radio" name="unit1" id = "unit1" value="lbs" />lbs</label>
+        <input type="radio" name="unit1" id ="unit3" value="kg" />kg</label>
+  </br>
+</br>
+    <input type ="submit" id="EditWorkout"></input>
+    <button type ="button" id="Close">Close</button>
+
+  </fieldset>
+
+</form>
+  <script>
+
+  function AjaxAddWorkout(){
+       var req = new XMLHttpRequest();
+       req.open("POST", "/insert", true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        var data = {};
+        //Even though we do not knwo the ID yet we need it to come first in the array
+        data.id = "placeholder";
+       data.name = document.getElementById("name").value;
+       data.reps = document.getElementById("reps").value;
+       data.weight = document.getElementById("weight").value;
+       data.date = document.getElementById("date").value;
+       data.unit = document.getElementById("unit").checked;
+       req.send(JSON.stringify(data));
+       req.addEventListener('load', function(){
+      if(req.status >= 200 && req.status < 400){
+        //Displays the entire string of text as text not as JSON or a Javascript object
+        var response = req.responseText;
+        var responseShort = JSON.parse(response);
+        var update = document.createElement("tr");
+        update.setAttribute("id", responseShort.results);
+        data.id = responseShort.results;
+         document.getElementById("name").style.border = "";
+
+        var col_item = [];
+        var col_text = [];
+        for(property in data){
+            var value = data[property];
+          col_item[property] = document.createElement("td");
+            col_text[property] = document.createTextNode(value);
+            if(property == "id"){
+                col_item[property].setAttribute("hidden", true);
+            }
+            col_item[property].appendChild(col_text[property]);
+          update.appendChild(col_item[property]);
+        }
+        DeleteEditButtons(update, data.id);
+         document.getElementById("WorkoutTable").appendChild(update);
+         ClearFormData();
+
+      }else{
+        //Return an alert if something goes wrong
+          alert("Error in network request: " + req.statusText);
+      }
+  });
+}
+
+function ClearFormData(){
+  var col_names = ["name", "reps", "weight","date","unit", "name1", "reps1", "weight1","date1","unit1"];
+  for(elem in col_names){
+    if(col_names[elem] == "unit"){
+      document.getElementById("unit").checked = false;
+      document.getElementById("unit2").checked = false;
+      document.getElementById("unit1").checked = false;
+      document.getElementById("unit3").checked = false;
+
+    }
+    document.getElementById(col_names[elem]).value = "";
+  }
+}
+
+  document.addEventListener("DOMContentLoaded", function () {
+     CreateTable();
+
+     document.getElementById("formAdd").addEventListener("submit", function (event) {
+     event.preventDefault();
+     if(document.getElementById("name").value == ""){
+       alert("Name is required");
+       document.getElementById("name").style.border = "solid red";
+     }else{
+       AjaxAddWorkout();
+     }
+   });
+   document.getElementById("EditWorkout").addEventListener("click", function(event){
+     event.preventDefault();
+     if(document.getElementById("name1").value == ""){
+       alert("Name is required");
+       document.getElementById("name1").style.border = "solid red";
+     }else{
+     SubmitEdit();
+     document.getElementById("name1").style.border = "";
+   }
+   });
+   document.getElementById("Close").addEventListener("click", function(event){
+     event.preventDefault();
+     document.getElementById("EDIT").style.display = "none";
+   });
+
+ });
+function DeleteEditButtons (array, arrId){
+  var hiddenID = document.createElement("input");
+  hiddenID.name = 'hiddenID';
+  hiddenID.type = 'hidden';
+  hiddenID.value = arrId;
+
+  var col_delete = document.createElement("td");
+  var delete_form = document.createElement("form");
+  var delete_button = document.createElement("button");
+  delete_button.addEventListener("click", function(event){
+    var context = {};
+    context.data = arrId;
+    var req = new XMLHttpRequest();
+    req.open("POST", "/delete", true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.send(JSON.stringify(context));
+    req.addEventListener('load', function(){
+   if(req.status >= 200 && req.status < 400){
+     var row = document.getElementById(arrId);
+     var parent = row.parentNode;
+      parent.removeChild(row);
+   }else{
+     alert("Network error");
+   }
+   });
+    event.preventDefault();
+  });
+  var button_text = document.createTextNode("Delete");
+  delete_button.appendChild(button_text);
+  delete_form.appendChild(hiddenID);
+  delete_form.appendChild(delete_button);
+  col_delete.appendChild(delete_form);
+  array.appendChild(col_delete);
+
+  hiddenID = document.createElement("input");
+  hiddenID.name = 'hiddenID';
+  hiddenID.type = 'hidden';
+  hiddenID.value = arrId;
+
+  var col_edit = document.createElement("td");
+  var edit_form = document.createElement("form");
+  var edit_button = document.createElement("button");
+  edit_button.type = 'submit';
+  edit_button.addEventListener("click", function(event){
+    document.getElementById("EDIT").style.display = "block";
+    var col_names = ["rowID","name1", "reps1", "weight1", "date1", "unit1", "unit3"];
+    for(i = 0; i < 7; i++){
+
+      var x = document.getElementById(arrId).cells[i].innerHTML;
+      if(col_names[i] == ("unit1" || "unit3")){
+        document.getElementById(col_names[i]).checked = x;
+      }else{
+
+        document.getElementById(col_names[i]).value = x;
+      }
+    }
+
+    event.preventDefault();
+  });
+  edit_button.setAttribute("id", arrId + "edit");
+  var button_txt = document.createTextNode("EDIT");
+  edit_button.appendChild(button_txt);
+  edit_form.appendChild(hiddenID);
+  edit_form.appendChild(edit_button);
+  col_edit.appendChild(edit_form);
+  array.appendChild(col_edit);
+
+
+}
+
+function SubmitEdit(){
+  var context = {};
+  var req = new XMLHttpRequest();
+  req.open("POST", "/edit", true);
+  req.setRequestHeader('Content-Type', 'application/json');
+  context.name = document.getElementById("name1").value;
+  context.reps = document.getElementById("reps1").value;
+  context.weight = document.getElementById("weight1").value;
+  context.date = document.getElementById("date1").value;
+  context.unit = document.getElementById("unit1").checked;
+  context.id = document.getElementById("rowID").value;
+  req.send(JSON.stringify(context));
+  req.addEventListener('load', function(){
+ if(req.status >= 200 && req.status < 400){
+document.getElementById("EDIT").style.display = "none";
+var col_names = ["name", "reps", "weight", "date", "unit"];
+for(i = 0; i < 5; i++){
+  var x = document.getElementById(context.id).cells;
+
+  if(col_names[i] == ("unit")){
+    x[i+1].innerHTML = context[(col_names[i])];
+  }else{
+    x[i+1].innerHTML = context[(col_names[i])];
+
+  }
+}
+ }else{
+   alert("Network error");
+ }
+ });
+
+}
+
+function ParseJSON(responseShort){
+  var row = [];
+  for (var i = 0; i < responseShort.length; i++) {
+    var object = responseShort[i];
+    row[i] = document.createElement("tr");
+    row[i].setAttribute("id", responseShort[i].id);
+    var col_item = [];
+    var col_text = [];
+     for (property in object) {
+      var value = object[property];
+      col_item[property] = document.createElement("td");
+        col_text[property] = document.createTextNode(value);
+        if(property == "id"){
+            col_item[property].setAttribute("hidden", true);
+        }
+        col_item[property].appendChild(col_text[property]);
+      row[i].appendChild(col_item[property]);
+
+    }
+    DeleteEditButtons(row[i], object["id"]);
+     document.getElementById("WorkoutTable").appendChild(row[i]);
+  }
+
+}
+
+function AddRows(){
+  var req = new XMLHttpRequest();
+  req.open("GET", "/refresh", true);
+  req.send(null);
+  req.addEventListener('load', function(){
+ if(req.status >= 200 && req.status < 400){
+   //Displays the entire string of text as text not as JSON or a Javascript object
+   var response = req.responseText;
+   var responseShort = JSON.parse(response);
+   ParseJSON(responseShort);
+ }else{
+   //Return an alert if something goes wrong
+     alert("Error in network request: " + req.statusText);
+ }
+});
+
+
+}
+
+ function CreateTable(){
+   //Adds table to DOM
+   var table = document.createElement("table");
+  table.setAttribute("id", "WorkoutTable");
+  document.body.appendChild(table);
+  //Adds header to DOM
+  var header = document.createElement("tr");
+  header.setAttribute("id", "myTr");
+  document.getElementById("WorkoutTable").appendChild(header);
+  //Array for the content of each cell in the header
+  var header_content = [];
+    //Array to keep all of the textnodes for each header cell
+    var head_arr = [];
+    var col_names = ["Name", "Number of Reps", "Weight","Date","Lbs"];
+    for(var i = 0; i < 5; i++){
+      header_content[i]  = document.createElement("th");
+      head_arr[i] = document.createTextNode(col_names[i]);
+      header_content[i].appendChild(head_arr[i]);
+      header_content[i].style.border="1px solid black";
+      document.getElementById("myTr").appendChild(header_content[i]);
+    }
+    AddRows();
+ }
+  </script>
+</body>
+</html>
